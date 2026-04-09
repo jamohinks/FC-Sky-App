@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:system-ui,sans-serif;display:flex;justify-content:center;padding:20px 8px;background:#f5f5f5;}
+.phone{width:235px;border-radius:38px;border:3px solid #1a1a1a;overflow:hidden;background:#fff;position:relative;}
+.notch{background:#1a1a1a;height:26px;display:flex;align-items:center;justify-content:center;}
+.notch-pill{background:#000;width:75px;height:16px;border-radius:9px;}
+.sb{background:#1a1a1a;color:#bbb;font-size:9px;padding:2px 16px 4px;display:flex;justify-content:space-between;}
+.screen{height:520px;position:relative;overflow:hidden;}
+
+.view{position:absolute;inset:0;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);overflow-y:auto;-webkit-overflow-scrolling:touch;background:#f0f0f0;display:none;}
+.view.active{transform:translateX(0);display:block;}
+.view.past{transform:translateX(-25%);display:block;}
+
+.hdr{background:#fff;padding:9px 12px;display:flex;align-items:center;gap:12px;border-bottom:.5px solid #e5e5e5;position:sticky;top:0;z-index:5;}
+.hbg{display:flex;flex-direction:column;gap:3px;width:18px;cursor:pointer;flex-shrink:0;}
+.hbg span{display:block;height:2px;background:#555;border-radius:1px;}
+.hdr-title{font-size:13px;font-weight:600;color:#333;}
+
+.pad{padding:10px;}
+.fc-card{background:#fff;border-radius:8px;border:.5px solid #e5e5e5;padding:11px 12px;margin-bottom:8px;}
+.fc-card-lbl{font-size:9px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;}
+.fc-card-val{font-size:18px;font-weight:700;color:#1a3a8c;}
+.fc-card-sub{font-size:10px;color:#aaa;margin-top:1px;}
+.sec-lbl{padding:8px 2px 4px;font-size:10px;font-weight:700;color:#888;letter-spacing:.06em;}
+.list-card{background:#fff;border-radius:8px;border:.5px solid #e5e5e5;margin-bottom:8px;overflow:hidden;}
+.list-row{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-bottom:.5px solid #f0f0f0;font-size:11px;color:#333;}
+.list-row:last-child{border-bottom:none;}
+.badge{background:#1a6abf;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;}
+.btn-blue{width:100%;background:#1a6abf;color:#fff;border:none;border-radius:6px;padding:11px;font-size:13px;font-weight:700;letter-spacing:.04em;cursor:pointer;margin-bottom:7px;}
+.fc-or{display:flex;align-items:center;gap:8px;width:100%;margin:4px 0;}
+.fc-or-line{flex:1;height:.5px;background:#ddd;}
+.fc-or span{font-size:10px;color:#aaa;}
+.fc-links{display:flex;justify-content:space-between;width:100%;margin:4px 0 12px;}
+.fc-links span{font-size:11px;color:#1a6abf;cursor:pointer;}
+
+.drawer{position:absolute;inset:0;z-index:50;display:none;flex-direction:row;}
+.drawer.open{display:flex;}
+.nav-panel{width:82%;background:#fff;height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;}
+.scrim{flex:1;background:rgba(0,0,0,.28);cursor:pointer;}
+.nav-user{padding:12px;border-bottom:.5px solid #ebebeb;flex-shrink:0;}
+.nav-uname{font-size:11px;color:#555;font-weight:500;margin-top:5px;}
+.ni{display:flex;align-items:center;padding:10px 12px;gap:10px;font-size:11px;font-weight:600;color:#666;letter-spacing:.03em;cursor:pointer;border-bottom:.5px solid #f5f5f5;flex-shrink:0;}
+.ni svg{flex-shrink:0;opacity:.6;}
+.ni .nch{margin-left:auto;font-size:12px;color:#bbb;}
+.ni .nbeta{background:#e5e5e5;color:#888;font-size:8px;font-weight:700;padding:2px 5px;border-radius:3px;margin-left:5px;}
+.ni.td{color:#1a3a5c;background:#fff9f5;border-left:3px solid #E87722;}
+.ni.td svg{opacity:1;}
+
+.sub-drawer{position:absolute;inset:0;z-index:52;display:none;flex-direction:row;}
+.sub-drawer.open{display:flex;}
+.td-l2{overflow:hidden;max-height:0;transition:max-height .25s ease;background:#f0f4f8;}
+.td-l2.open{max-height:999px;}
+.td-sub{padding:8px 12px 8px 44px;font-size:10.5px;color:#555;border-bottom:.5px solid #e4eaf0;cursor:pointer;display:flex;align-items:center;gap:7px;}
+.td-sub::before{content:'';width:3px;height:3px;border-radius:50%;background:#aaa;flex-shrink:0;}
+
+.wm-ctx{background:#e8f0f8;padding:5px 10px 5px 12px;font-size:9px;color:#1a3a5c;font-weight:600;display:flex;align-items:center;gap:8px;border-bottom:.5px solid #c8d8e8;position:sticky;top:0;z-index:5;}
+.wm-ctx .hbg span{background:#1a3a5c;}
+
+.tog{width:34px;height:20px;border-radius:10px;flex-shrink:0;position:relative;background:#1a6abf;}
+.tog-inner{position:absolute;right:2px;top:2px;width:16px;height:16px;border-radius:50%;background:#fff;}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="notch"><div class="notch-pill"></div></div>
+  <div class="sb"><span>12:20</span><span>▲ ◀ ● 91</span></div>
+  <div class="screen" id="screen">
+
+    <!-- COMPANY CODE -->
+    <div class="view" id="v-company-code" style="background:#fff;">
+      <div style="min-height:520px;display:flex;flex-direction:column;align-items:center;padding:32px 22px 20px;">
+        <div style="margin-bottom:28px;font-size:22px;font-weight:700;color:#1a3a5c;">fran<span style="font-weight:400;color:#555;">connect</span></div>
+        <div style="width:100%;background:#222;border-radius:6px;margin-bottom:18px;">
+          <div style="padding:24px 12px 14px;display:flex;flex-direction:column;align-items:center;gap:10px;">
+            <div style="width:40px;height:40px;border-radius:50%;border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M5 3l9 5-9 5V3z" fill="#fff"/></svg></div>
+            <span style="font-size:11px;color:#fff;font-weight:500;">How to find Company Code</span>
+          </div>
+        </div>
+        <div style="width:100%;border:1.5px solid #ccc;border-radius:6px;padding:10px 12px;font-size:12px;color:#333;margin-bottom:14px;">salesdemosedemo</div>
+        <button class="btn-blue" onclick="nav('v-login')">CONTINUE</button>
+        <div style="flex:1;"></div>
+        <div style="text-align:center;margin-top:20px;">
+          <div style="font-size:10px;color:#aaa;margin-bottom:4px;">Powered By:</div>
+          <div style="font-size:14px;font-weight:700;color:#1a3a5c;">fran<span style="font-weight:400;color:#555;">connect</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="view" id="v-login" style="background:#fff;">
+      <div style="min-height:520px;display:flex;flex-direction:column;align-items:center;padding:28px 22px 16px;">
+        <div style="margin-bottom:22px;font-size:22px;font-weight:700;color:#1a3a5c;">fran<span style="font-weight:400;color:#555;">connect</span></div>
+        <div style="width:100%;position:relative;margin-bottom:12px;">
+          <div style="font-size:10px;color:#aaa;margin-bottom:2px;">Login ID</div>
+          <svg style="position:absolute;left:0;top:22px;" width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="6" r="3" stroke="#aaa" stroke-width="1.3"/><path d="M2 14c0-3.5 12-3.5 12 0" stroke="#aaa" stroke-width="1.3" fill="none"/></svg>
+          <input style="width:100%;border:none;border-bottom:1.5px solid #ccc;padding:7px 0 5px 24px;font-size:12px;color:#333;background:transparent;outline:none;" value="bradmurray" readonly/>
+        </div>
+        <div style="width:100%;position:relative;margin-bottom:12px;">
+          <div style="font-size:10px;color:#aaa;margin-bottom:2px;">Password</div>
+          <svg style="position:absolute;left:0;top:22px;" width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="3" y="7" width="10" height="7" rx="1.5" stroke="#aaa" stroke-width="1.3"/><path d="M5 7V5a3 3 0 0 1 6 0v2" stroke="#E87722" stroke-width="1.3"/></svg>
+          <input style="width:100%;border:none;border-bottom:1.5px solid #E87722;padding:7px 0 5px 24px;font-size:12px;color:#333;background:transparent;outline:none;" type="password" value="password123" readonly/>
+        </div>
+        <div class="fc-links"><span onclick="nav('v-company-code')">Change Company Code</span><span>Forgot Password?</span></div>
+        <button class="btn-blue" onclick="nav('v-activity')">LOG IN</button>
+        <div style="display:flex;align-items:center;justify-content:center;gap:8px;font-size:11px;color:#444;margin:4px 0;">Face ID Login</div>
+        <div class="fc-or"><div class="fc-or-line"></div><span>Or</span><div class="fc-or-line"></div></div>
+        <button class="btn-blue">LOG IN WITH SSO</button>
+        <div style="margin-top:10px;text-align:center;">
+          <div style="font-size:11px;color:#1a6abf;margin-bottom:2px;">Need help signing in?</div>
+          <div style="font-size:9px;color:#aaa;">© 2004-2026, FranConnect LLC All rights reserved.</div>
+          <div style="font-size:10px;color:#aaa;margin-top:4px;">Powered By: <b style="color:#1a3a5c;">fran</b><span style="color:#555;">connect</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIVITY -->
+    <div class="view" id="v-activity">
+      <div class="hdr"><div class="hbg" onclick="openDrawer('fc')"><span></span><span></span><span></span></div><span class="hdr-title">Notifications &amp; Activity</span></div>
+      <div style="background:#e8f0f8;padding:7px 12px;font-size:9.5px;color:#1a3a5c;border-bottom:.5px solid #c8d8e8;display:flex;align-items:center;gap:6px;">
+        <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#1a3a5c" stroke-width="1.3"/><path d="M8 7v4M8 5v.5" stroke="#1a3a5c" stroke-width="1.3" stroke-linecap="round"/></svg>
+        Last 15 days of activity since last logged in
+      </div>
+      <div class="pad">
+        <div class="sec-lbl">ACTIVITY</div>
+        <div class="list-card">
+          <div class="list-row">Stories</div>
+          <div class="list-row">Documents <span class="badge">3</span></div>
+        </div>
+        <div style="background:#fff;border-radius:8px;border:.5px solid #e5e5e5;margin-bottom:8px;overflow:hidden;">
+          <div style="padding:6px 10px;font-size:9px;font-weight:700;color:#888;letter-spacing:.06em;border-bottom:.5px solid #f0f0f0;">THIS MONTH</div>
+          <div style="display:flex;align-items:flex-start;padding:10px 10px 10px 6px;border-bottom:.5px solid #f0f0f0;gap:8px;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;"><div style="width:22px;height:22px;border-radius:50%;background:#e0f5f5;display:flex;align-items:center;justify-content:center;"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 8l3-3 3 3 3-3 3 3" stroke="#2bbcbc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div style="width:1px;flex:1;background:#e0e0e0;min-height:20px;"></div></div>
+            <div style="flex:1;min-width:0;"><div style="background:#fff;border:.5px solid #e5e5e5;border-radius:6px;padding:8px 10px;"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:4px;"><div style="display:flex;align-items:center;gap:6px;"><div style="width:22px;height:22px;border-radius:50%;background:#2bbcbc;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;flex-shrink:0;">JH</div><span style="font-size:10px;font-weight:600;color:#2bbcbc;">James Hinks</span></div><span style="font-size:8px;color:#aaa;white-space:nowrap;">Apr 09, 2026</span></div><div style="font-size:10px;color:#555;margin-bottom:6px;padding-left:28px;">Added a comment for New Company Picnic</div><div style="border-top:.5px solid #f0f0f0;padding-top:6px;font-size:10px;color:#333;">For our new team building day for marketing</div></div></div>
+          </div>
+          <div style="display:flex;align-items:flex-start;padding:10px 10px 10px 6px;gap:8px;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;"><div style="width:22px;height:22px;border-radius:50%;background:#e0f5f5;display:flex;align-items:center;justify-content:center;"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M2 8l3-3 3 3 3-3 3 3" stroke="#2bbcbc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+            <div style="flex:1;min-width:0;"><div style="background:#fff;border:.5px solid #e5e5e5;border-radius:6px;padding:8px 10px;"><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:4px;"><div style="display:flex;align-items:center;gap:6px;"><div style="width:22px;height:22px;border-radius:50%;background:#2bbcbc;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;flex-shrink:0;">SA</div><span style="font-size:10px;font-weight:600;color:#2bbcbc;">Sarah Allen</span></div><span style="font-size:8px;color:#aaa;white-space:nowrap;">Apr 08, 2026</span></div><div style="font-size:10px;color:#555;padding-left:28px;">Uploaded Q1 Training Materials</div></div></div>
+          </div>
+        </div>
+        <div class="list-card"><div class="list-row">Alerts <span class="badge">2</span></div><div class="list-row">Messages <span class="badge">7</span></div></div>
+        <div class="sec-lbl">SUPPORT</div>
+        <div class="list-card"><div class="list-row">Support <span class="badge">1</span></div></div>
+        <div class="sec-lbl">TRAINING &amp; DEVELOPMENT</div>
+        <div class="list-card">
+          <div class="list-row">Achievement Awards</div><div class="list-row">Appraisals</div><div class="list-row">Calendar</div>
+          <div class="list-row">Contract Generation <span class="badge">1</span></div>
+          <div class="list-row">E-Learning</div><div class="list-row">Events</div><div class="list-row">Forum</div><div class="list-row">Goals</div><div class="list-row">Incident Reports</div><div class="list-row">Location Reviews</div><div class="list-row">Notices</div>
+          <div class="list-row">Recruitment <span class="badge">3</span></div>
+          <div class="list-row">Service Desk</div><div class="list-row">Sign Offs</div><div class="list-row">Social</div>
+        </div>
+        <div style="height:20px;"></div>
+      </div>
+    </div>
+
+    <!-- HUB -->
+    <div class="view" id="v-hub">
+      <div class="hdr" style="justify-content:space-between;"><div style="display:flex;align-items:center;gap:12px;"><div class="hbg" onclick="openDrawer('fc')"><span></span><span></span><span></span></div><span class="hdr-title">The Hub</span></div><div style="display:flex;gap:14px;align-items:center;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4" stroke="#555" stroke-width="1.3"/><path d="M10 10l3 3" stroke="#555" stroke-width="1.3" stroke-linecap="round"/></svg><div style="width:26px;height:26px;border-radius:50%;overflow:hidden;"><svg width="26" height="26" viewBox="0 0 26 26"><circle cx="13" cy="13" r="13" fill="#b5cfe8"/><circle cx="13" cy="10" r="4" fill="#c8a882"/><ellipse cx="13" cy="9" rx="4.5" ry="2" fill="#2a1a0e"/><ellipse cx="13" cy="21" rx="8" ry="6" fill="#7a9cc0"/></svg></div></div></div>
+      <div style="display:flex;background:#fff;border-bottom:1.5px solid #e5e5e5;"><div style="flex:1;text-align:center;padding:9px 4px;font-size:10px;font-weight:700;color:#1a6abf;border-bottom:2px solid #1a6abf;">WALL</div><div style="flex:1;text-align:center;padding:9px 4px;font-size:10px;font-weight:600;color:#aaa;">INBOX</div><div style="flex:1;text-align:center;padding:9px 4px;font-size:10px;font-weight:600;color:#aaa;">GROUPS</div><div style="flex:1;text-align:center;padding:9px 4px;font-size:10px;font-weight:600;color:#aaa;">GALLERY</div></div>
+      <div style="background:#f5f5f5;">
+        <div style="background:#fff;padding:10px 12px;display:flex;align-items:center;gap:10px;border-bottom:.5px solid #ebebeb;margin-bottom:8px;"><div style="width:28px;height:28px;border-radius:50%;overflow:hidden;flex-shrink:0;"><svg width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="14" r="14" fill="#b5cfe8"/><circle cx="14" cy="11" r="4.5" fill="#c8a882"/><ellipse cx="14" cy="23" rx="9" ry="7" fill="#7a9cc0"/></svg></div><span style="font-size:11.5px;color:#aaa;">Write a Post, Brad...</span></div>
+        <div style="padding:6px 12px;font-size:10px;font-weight:700;color:#555;letter-spacing:.04em;">TOP STORIES</div>
+        <div style="display:flex;gap:8px;padding:4px 12px 10px;">
+          <div style="flex-shrink:0;width:64px;display:flex;flex-direction:column;align-items:center;gap:4px;"><div style="width:56px;height:56px;border-radius:50%;background:#1a6abf;display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg></div><span style="font-size:9px;color:#555;text-align:center;">Create Stories</span></div>
+          <div style="flex-shrink:0;width:72px;"><div style="width:64px;height:64px;border-radius:8px;background:linear-gradient(135deg,#2a5580,#4a8080);display:flex;align-items:center;justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M8 6l10 6-10 6V6z" fill="#fff"/></svg></div><span style="font-size:8px;color:#555;display:block;margin-top:3px;line-height:1.2;">Navigating Global Trade...</span></div>
+        </div>
+        <div style="background:#fff;border-radius:8px;margin:0 10px 10px;border:.5px solid #e5e5e5;overflow:hidden;">
+          <div style="padding:10px 12px;display:flex;align-items:flex-start;justify-content:space-between;"><div style="display:flex;align-items:center;gap:8px;"><div style="width:32px;height:32px;border-radius:50%;background:#2bbcbc;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;">SD</div><div><div style="font-size:11px;font-weight:600;color:#333;">Sanjay Dimri</div><div style="font-size:9px;color:#aaa;">Dec 12, 2023 · J&amp;L Training</div></div></div><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="#bbb" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+          <div style="width:100%;height:100px;background:linear-gradient(160deg,#888,#555);display:flex;align-items:center;justify-content:center;"><div style="background:#fff;border-radius:50%;width:60px;height:60px;display:flex;align-items:center;justify-content:center;"><span style="font-size:11px;font-weight:800;color:#2a7a2a;">OPEN</span></div></div>
+          <div style="padding:8px 12px;display:flex;justify-content:space-between;border-top:.5px solid #f0f0f0;"><span style="font-size:10px;color:#888;">50 Like</span><span style="font-size:10px;color:#888;">8 Responses</span></div>
+        </div>
+        <div style="background:#fff;border-top:.5px solid #e5e5e5;display:flex;padding:8px 0 4px;">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" fill="#1a6abf"/><rect x="9" y="2" width="5" height="5" rx="1" fill="#1a6abf"/><rect x="2" y="9" width="5" height="5" rx="1" fill="#1a6abf"/><rect x="9" y="9" width="5" height="5" rx="1" fill="#1a6abf"/></svg><span style="font-size:8px;color:#1a6abf;font-weight:600;">FRANBUZZ</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#aaa" stroke-width="1.3"/></svg><span style="font-size:8px;color:#aaa;">TOPICS</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1.5" stroke="#aaa" stroke-width="1.3"/></svg><span style="font-size:8px;color:#aaa;">LIBRARY</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M8 2v12" stroke="#aaa" stroke-width="1.3" stroke-linecap="round"/></svg><span style="font-size:8px;color:#aaa;">LINKS</span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="4" cy="8" r="1.2" fill="#aaa"/><circle cx="8" cy="8" r="1.2" fill="#aaa"/><circle cx="12" cy="8" r="1.2" fill="#aaa"/></svg><span style="font-size:8px;color:#aaa;">MORE</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WM DASHBOARD -->
+    <div class="view" id="v-wm">
+      <div class="wm-ctx">
+        <div class="hbg" onclick="openDrawer('fc')"><span></span><span></span><span></span></div>
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 1L1 4.5v1c0 5 3 8.5 7 10 4-1.5 7-5 7-10v-1L8 1z" stroke="#1a3a5c" stroke-width="1.4" fill="none"/><path d="M5.5 8l2 2 3-3" stroke="#1a3a5c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Training &amp; Development
+        <div style="margin-left:auto;width:28px;height:28px;border-radius:50%;overflow:hidden;border:1.5px solid #c8d8e8;flex-shrink:0;"><svg width="28" height="28" viewBox="0 0 28 28"><circle cx="14" cy="14" r="14" fill="#b5cfe8"/><circle cx="14" cy="11" r="5" fill="#c8a882"/><ellipse cx="14" cy="10" rx="5.5" ry="2.5" fill="#2a1a0e"/><ellipse cx="14" cy="23" rx="10" ry="7" fill="#7a9cc0"/></svg></div>
+      </div>
+      <div style="background:#fff;padding:5px 10px;display:flex;align-items:center;gap:6px;font-size:11px;color:#555;border-bottom:.5px solid #e5e5e5;"><svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M2 8l6-6 6 6v6H10v-4H6v4H2V8z" stroke="#888" stroke-width="1.3" fill="none"/></svg>Home Dashboard</div>
+      <div style="padding:5px 10px;background:#f0f0f0;"><span style="border:1px solid #bbb;background:#fff;border-radius:4px;padding:3px 9px;font-size:10px;color:#555;display:inline-block;">Add Widget</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-top:3px;">
+        <div style="height:72px;display:flex;align-items:flex-end;padding:6px;position:relative;overflow:hidden;"><div style="position:absolute;inset:0;background:linear-gradient(135deg,#4a6a8a,#2a4a6a);"></div><span style="font-size:9px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7);position:relative;z-index:1;">TRAINING</span></div>
+        <div style="height:72px;display:flex;align-items:flex-end;padding:6px;position:relative;overflow:hidden;"><div style="position:absolute;inset:0;background:linear-gradient(135deg,#5a7a90,#3a5a70);"></div><span style="font-size:9px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7);position:relative;z-index:1;line-height:1.3;">TRAINING<br>RESOURCES</span></div>
+      </div>
+      <div style="height:50px;background:#4a6a8a;display:flex;align-items:center;justify-content:center;margin-top:2px;"><span style="font-size:9px;font-weight:700;color:#fff;text-align:center;">LIVE COURSES — SIGN UP: COMING SOON!</span></div>
+      <div style="background:#1d4068;padding:6px 10px;margin-top:2px;"><span style="font-size:10px;font-weight:700;color:#fff;letter-spacing:.06em;">MY TASKS</span></div>
+      <div style="display:flex;align-items:center;padding:6px 10px;gap:8px;background:#fff;border-bottom:.5px solid #f0f0f0;"><span style="font-size:10px;color:#333;flex:1;">E-Learning</span><span style="background:#1a6abf;color:#fff;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;">36</span></div>
+      <div style="display:flex;align-items:center;padding:6px 10px;gap:8px;background:#fff;border-bottom:.5px solid #f0f0f0;"><span style="font-size:10px;color:#333;flex:1;">Events</span><span style="background:#1a6abf;color:#fff;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;">1</span></div>
+      <div style="display:flex;align-items:center;padding:6px 10px;gap:8px;background:#fff;border-bottom:.5px solid #f0f0f0;"><span style="font-size:10px;color:#333;flex:1;">Internal Surveys</span><span style="background:#1a6abf;color:#fff;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;">2</span></div>
+      <div style="display:flex;align-items:center;padding:6px 10px;gap:8px;background:#fff;border-bottom:.5px solid #f0f0f0;"><span style="font-size:10px;color:#333;flex:1;">Scenario Comprehension</span><span style="background:#1a6abf;color:#fff;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;">5</span></div>
+      <div style="display:flex;align-items:center;padding:6px 10px;gap:8px;background:#fff;border-bottom:.5px solid #f0f0f0;"><span style="font-size:10px;color:#333;flex:1;">Sign Offs</span><span style="background:#1a6abf;color:#fff;font-size:9px;font-weight:700;padding:2px 5px;border-radius:3px;">11</span></div>
+      <div style="background:linear-gradient(90deg,#1d4068 60%,#1a6abf);padding:5px 10px;"><span style="font-size:8px;font-weight:700;color:#fff;letter-spacing:.08em;">PERFORMANCE MONITOR</span></div>
+      <div style="padding:5px 10px;background:#fff;border-bottom:.5px solid #f0f0f0;"><div style="font-size:10px;color:#333;margin-bottom:3px;">412 Brisbane</div><div style="height:4px;background:#e0e0e0;border-radius:3px;"><div style="height:100%;width:62%;border-radius:3px;background:#1d4068;"></div></div></div>
+      <div style="padding:5px 10px;background:#fff;"><div style="font-size:10px;color:#333;margin-bottom:3px;">413 Clontarf Beach</div><div style="height:4px;background:#e0e0e0;border-radius:3px;"><div style="height:100%;width:45%;border-radius:3px;background:#1d4068;"></div></div></div>
+      <div style="height:20px;"></div>
+    </div>
+
+    <!-- EXIT INTERVIEWS -->
+    <div class="view" id="v-exit">
+      <div class="wm-ctx"><div class="hbg" onclick="openDrawer('fc')"><span></span><span></span><span></span></div><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 1L1 4.5v1c0 5 3 8.5 7 10 4-1.5 7-5 7-10v-1L8 1z" stroke="#1a3a5c" stroke-width="1.4" fill="none"/></svg>Training &amp; Development</div>
+      <div style="background:#fff;padding:10px 12px;display:flex;align-items:center;gap:8px;border-bottom:.5px solid #e5e5e5;"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="1.5" stroke="#555" stroke-width="1.3"/><path d="M5 6h6M5 9h4" stroke="#555" stroke-width="1.3" stroke-linecap="round"/></svg><span style="font-size:13px;font-weight:600;color:#333;">View Results</span></div>
+      <div style="background:#f0f0f0;padding:10px;">
+        <div style="background:#fff;border-radius:8px;border:.5px solid #e5e5e5;overflow:hidden;">
+          <div style="display:grid;grid-template-columns:1fr auto;padding:8px 12px;background:#f8f8f8;border-bottom:.5px solid #e5e5e5;"><span style="font-size:10px;font-weight:700;color:#555;">Survey</span><span style="font-size:10px;font-weight:700;color:#555;">Completed By</span></div>
+          <div style="display:grid;grid-template-columns:1fr auto auto;align-items:center;padding:9px 12px;border-bottom:.5px solid #f0f0f0;gap:8px;"><span style="font-size:11px;color:#333;">Employee Exit Interview</span><span style="font-size:10px;color:#1a6abf;text-decoration:underline;text-align:right;">Charlotte<br>Crowley</span><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4" stroke="#888" stroke-width="1.3"/><path d="M10 10l3 3" stroke="#888" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+          <div style="display:grid;grid-template-columns:1fr auto auto;align-items:center;padding:9px 12px;border-bottom:.5px solid #f0f0f0;gap:8px;"><span style="font-size:11px;color:#333;">Employee Exit Interview</span><span style="font-size:10px;color:#1a6abf;text-decoration:underline;text-align:right;">AU - Penny<br>Ballard</span><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4" stroke="#888" stroke-width="1.3"/><path d="M10 10l3 3" stroke="#888" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+          <div style="display:grid;grid-template-columns:1fr auto auto;align-items:center;padding:9px 12px;border-bottom:.5px solid #f0f0f0;gap:8px;"><span style="font-size:11px;color:#333;">Employee Exit Interview</span><span style="font-size:10px;color:#1a6abf;text-decoration:underline;text-align:right;">AU - Shirley<br>Luna</span><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4" stroke="#888" stroke-width="1.3"/><path d="M10 10l3 3" stroke="#888" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+          <div style="display:grid;grid-template-columns:1fr auto auto;align-items:center;padding:9px 12px;border-bottom:.5px solid #f0f0f0;gap:8px;"><span style="font-size:11px;color:#333;">Employee Exit Interview</span><span style="font-size:10px;color:#1a6abf;text-decoration:underline;text-align:right;">AU - Rosie<br>Henderson</span><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4" stroke="#888" stroke-width="1.3"/><path d="M10 10l3 3" stroke="#888" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+          <div style="display:grid;grid-template-columns:1fr auto auto;align-items:center;padding:9px 12px;gap:8px;"><span style="font-size:11px;color:#333;">Employee Exit Interview</span><span style="font-size:10px;color:#1a6abf;text-decoration:underline;text-align:right;">AU - Grady<br>Lopez</span><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4" stroke="#888" stroke-width="1.3"/><path d="M10 10l3 3" stroke="#888" stroke-width="1.3" stroke-linecap="round"/></svg></div>
+        </div>
+        <div style="height:20px;"></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="view" id="v-settings">
+      <div class="hdr"><div class="hbg" onclick="openDrawer('fc')"><span></span><span></span><span></span></div><span class="hdr-title">Settings</span></div>
+      <div class="pad">
+        <div class="sec-lbl">ACTIVITY</div>
+        <div class="list-card">
+          <div class="list-row" style="font-size:10.5px;">Comment Posted on Franbuzz Post<div class="tog"><div class="tog-inner"></div></div></div>
+          <div class="list-row" style="font-size:10.5px;">Story added<div class="tog"><div class="tog-inner"></div></div></div>
+          <div class="list-row" style="font-size:10.5px;">Document added in Library<div class="tog"><div class="tog-inner"></div></div></div>
+          <div class="list-row" style="font-size:10.5px;">Message received<div class="tog"><div class="tog-inner"></div></div></div>
+          <div class="list-row" style="font-size:10.5px;">Alert mail received<div class="tog"><div class="tog-inner"></div></div></div>
+          <div class="list-row" style="font-size:10.5px;">Likes on Franbuzz Post<div class="tog"><div class="tog-inner"></div></div></div>
+        </div>
+        <div class="sec-lbl">SUPPORT</div>
+        <div class="list-card"><div class="list-row" style="font-size:10.5px;">New Message Added<div class="tog"><div class="tog-inner"></div></div></div></div>
+        <div class="sec-lbl">TRAINING &amp; DEVELOPMENT</div>
+        <div class="list-card">
+          <div class="list-row" style="font-size:10.5px;">Achievement Awards<div class="tog"><div class="tog-inner"></div></div></div>
+          <div class="list-row" style="font-size:10.5px;">Calendar<div class="tog"><div class="tog-inner"></div></div></div>
+          <div class="list-row" style="font-size:10.5px;">E-Learning<div class="tog"><div class="tog-inner"></div></div></div>
+          <div class="list-row" style="font-size:10.5px;">Events<div class="tog"><div class="tog-inner"></div></div></div>
+          <div class="list-row" style="font-size:10.5px;">Notices<div class="tog"><div class="tog-inner"></div></div></div>
+          <div class="list-row" style="font-size:10.5px;">Performance Reviews<div class="tog"><div class="tog-inner"></div></div></div>
+          <div class="list-row" style="font-size:10.5px;">Sign Offs<div class="tog"><div class="tog-inner"></div></div></div>
+          <div class="list-row" style="font-size:10.5px;">Social<div class="tog"><div class="tog-inner"></div></div></div>
+        </div>
+        <button class="btn-blue" onclick="nav('v-activity')">SAVE</button>
+        <div style="height:20px;"></div>
+      </div>
+    </div>
+
+    <!-- FC NAV DRAWER -->
+    <div class="drawer" id="drawer-fc">
+      <div class="nav-panel">
+        <div class="nav-user">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px;">
+            <div style="width:40px;height:40px;border-radius:50%;overflow:hidden;"><svg width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="#b5cfe8"/><circle cx="20" cy="15" r="5.5" fill="#c8a882"/><ellipse cx="20" cy="13" rx="6.5" ry="3" fill="#2a1a0e"/><ellipse cx="20" cy="33" rx="12" ry="9" fill="#7a9cc0"/></svg></div>
+            <div style="display:flex;gap:12px;padding-top:3px;">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 2a4 4 0 0 0-4 4v2l-1 2h10l-1-2V6a4 4 0 0 0-4-4z" stroke="#888" stroke-width="1.3" fill="none"/></svg>
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="6" r="3" stroke="#888" stroke-width="1.3"/><path d="M2 14c0-3.5 12-3.5 12 0" stroke="#888" stroke-width="1.3" fill="none"/></svg>
+            </div>
+          </div>
+          <div class="nav-uname">AU - Brad Murray</div>
+        </div>
+        <div class="ni" onclick="closeDrawer('fc');nav('v-activity');"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2 8l6-6 6 6v6H10v-4H6v4H2V8z" stroke="#888" stroke-width="1.3" fill="none"/></svg>ACTIVITY</div>
+        <div class="ni" onclick="closeDrawer('fc');nav('v-hub');"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="12" height="9" rx="1.5" stroke="#888" stroke-width="1.3"/><path d="M2 8h12" stroke="#888" stroke-width="1.3"/></svg>HUB</div>
+        <div class="ni" onclick="closeDrawer('fc');setTimeout(function(){openDrawer('im');},300);"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1" stroke="#888" stroke-width="1.3"/><rect x="9" y="1" width="6" height="6" rx="1" stroke="#888" stroke-width="1.3"/><rect x="1" y="9" width="6" height="6" rx="1" stroke="#888" stroke-width="1.3"/><rect x="9" y="9" width="6" height="6" rx="1" stroke="#888" stroke-width="1.3"/></svg>INFORMATION MANAGER</div>
+        <div class="ni"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1.5" stroke="#888" stroke-width="1.3"/><path d="M2 7h12M5 3V2M11 3V2" stroke="#888" stroke-width="1.3"/></svg>OPENER <span class="nch">›</span></div>
+        <div class="ni"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1.5" stroke="#888" stroke-width="1.3"/><path d="M2 7h12" stroke="#888" stroke-width="1.3"/></svg>LOCATIONS <span class="nbeta">BETA</span></div>
+        <div class="ni td" onclick="closeDrawer('fc');setTimeout(function(){openDrawer('td');},300);">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 1L1 4.5v1c0 5 3 8.5 7 10 4-1.5 7-5 7-10v-1L8 1z" stroke="#E87722" stroke-width="1.3" fill="none"/><path d="M5.5 8l2 2 3-3" stroke="#E87722" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          TRAINING &amp; DEVELOPMENT <span class="nch">›</span>
+        </div>
+        <div class="ni"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="#888" stroke-width="1.3"/><path d="M8 7v4M8 5.5v.5" stroke="#888" stroke-width="1.3" stroke-linecap="round"/></svg>SUPPORT <span class="nch">›</span></div>
+        <div class="ni"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2 5h12M2 8h9M2 11h6" stroke="#888" stroke-width="1.3" stroke-linecap="round"/></svg>FINANCIALS <span class="nch">›</span></div>
+        <div class="ni"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="10" rx="1.5" stroke="#888" stroke-width="1.3"/><path d="M2 7h12M5 3V2M11 3V2" stroke="#888" stroke-width="1.3"/></svg>CALENDAR</div>
+        <div class="ni" onclick="closeDrawer('fc');nav('v-settings');"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.5" stroke="#888" stroke-width="1.3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke="#888" stroke-width="1.3" stroke-linecap="round"/></svg>SETTINGS</div>
+        <div class="ni" onclick="closeDrawer('fc');nav('v-login');"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M6 3H3a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h3M10 5l3 3-3 3M13 8H6" stroke="#888" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>LOGOUT</div>
+        <div style="height:20px;flex-shrink:0;"></div>
+      </div>
+      <div class="scrim" onclick="closeDrawer('fc')"></div>
+    </div>
+
+    <!-- IM SUB DRAWER -->
+    <div class="sub-drawer" id="drawer-im">
+      <div class="nav-panel">
+        <div class="nav-user">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+            <div style="width:44px;height:44px;border-radius:50%;background:#d0d0d0;overflow:hidden;"><svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="22" fill="#d0d0d0"/><circle cx="22" cy="17" r="8" fill="#888"/><ellipse cx="22" cy="38" rx="15" ry="10" fill="#888"/></svg></div>
+            <div style="display:flex;gap:14px;padding-top:4px;">
+              <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><path d="M8 2a4 4 0 0 0-4 4v2l-1 2h10l-1-2V6a4 4 0 0 0-4-4z" stroke="#aaa" stroke-width="1.3" fill="none"/></svg>
+              <svg width="18" height="18" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="6" r="3" stroke="#aaa" stroke-width="1.3"/><path d="M2 14c0-3.5 12-3.5 12 0" stroke="#aaa" stroke-width="1.3" fill="none"/></svg>
+            </div>
+          </div>
+          <div style="font-size:11.5px;font-weight:500;color:#555;">FranConnect Administrator</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-bottom:.5px solid #e0e0e0;cursor:pointer;" onclick="closeDrawer('im')">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M10 3l-5 5 5 5" stroke="#555" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span style="font-size:11px;font-weight:700;color:#555;letter-spacing:.04em;text-transform:uppercase;">Information Manager</span>
+        </div>
+        <div class="ni" style="gap:14px;"><svg width="18" height="18" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#aaa" stroke-width="1.3"/><path d="M5 8h6M8 5v6" stroke="#aaa" stroke-width="1.3" stroke-linecap="round"/></svg><span style="color:#888;">DASHBOARD</span></div>
+        <div class="ni" style="gap:14px;"><svg width="18" height="18" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="7" r="3" stroke="#aaa" stroke-width="1.3"/><circle cx="11" cy="5.5" r="2.5" stroke="#aaa" stroke-width="1.3"/><path d="M1 14c0-2.5 5-2.5 5 0M7.5 13c0-2 5-2 5 0" stroke="#aaa" stroke-width="1.3" fill="none"/></svg><span style="color:#888;">MULTI-UNIT / ENTITY</span></div>
+        <div class="ni" style="gap:14px;"><svg width="18" height="18" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="12" height="12" rx="1.5" stroke="#aaa" stroke-width="1.3"/><path d="M5 8l2 2 4-4" stroke="#aaa" stroke-width="1.3" stroke-linecap="round"/></svg><span style="color:#888;">TASKS</span></div>
+        <div class="ni" style="gap:14px;"><svg width="18" height="18" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4" stroke="#aaa" stroke-width="1.3"/><path d="M10 10l3 3" stroke="#aaa" stroke-width="1.3" stroke-linecap="round"/></svg><span style="color:#888;">SEARCH</span></div>
+        <div style="height:20px;flex-shrink:0;"></div>
+      </div>
+      <div class="scrim" onclick="closeDrawer('im')"></div>
+    </div>
+
+    <!-- TD SUB DRAWER -->
+    <div class="sub-drawer" id="drawer-td">
+      <div class="nav-panel">
+        <div class="nav-user">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px;">
+            <div style="width:40px;height:40px;border-radius:50%;overflow:hidden;"><svg width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="#b5cfe8"/><circle cx="20" cy="15" r="5.5" fill="#c8a882"/><ellipse cx="20" cy="13" rx="6.5" ry="3" fill="#2a1a0e"/><ellipse cx="20" cy="33" rx="12" ry="9" fill="#7a9cc0"/></svg></div>
+            <div style="display:flex;gap:12px;padding-top:3px;">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 2a4 4 0 0 0-4 4v2l-1 2h10l-1-2V6a4 4 0 0 0-4-4z" stroke="#888" stroke-width="1.3" fill="none"/></svg>
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="6" r="3" stroke="#888" stroke-width="1.3"/><path d="M2 14c0-3.5 12-3.5 12 0" stroke="#888" stroke-width="1.3" fill="none"/></svg>
+            </div>
+          </div>
+          <div class="nav-uname">AU - Brad Murray</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:11px 12px;border-bottom:.5px solid #e0e0e0;cursor:pointer;" onclick="closeDrawer('td')">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M10 3l-5 5 5 5" stroke="#555" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span style="font-size:11px;font-weight:700;color:#555;letter-spacing:.04em;text-transform:uppercase;">Training &amp; Development</span>
+        </div>
+        <div class="ni" onclick="closeDrawer('td');nav('v-wm');"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2 8l6-6 6 6v6H10v-4H6v4H2V8z" stroke="#888" stroke-width="1.3" fill="none"/></svg>HOME</div>
+        <div class="ni" onclick="togSub('divs')"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" rx="1" stroke="#888" stroke-width="1.3"/><rect x="9" y="1" width="6" height="6" rx="1" stroke="#888" stroke-width="1.3"/><rect x="1" y="9" width="6" height="6" rx="1" stroke="#888" stroke-width="1.3"/><rect x="9" y="9" width="6" height="6" rx="1" stroke="#888" stroke-width="1.3"/></svg>DIVISIONS <span class="nch" id="ch-divs">›</span></div>
+        <div class="td-l2" id="sub-divs">
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">Brand: AFC</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">Brand: Pest Control</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">Brand: Pie Story</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">Brand: Restaurant</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">Brand: Wally Wasp</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">Brand: Wild Blue</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">Country: Australia</div>
+        </div>
+        <div class="ni" onclick="togSub('tools')"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M9.5 2.5l4 4-7 7-4 .5.5-4 6.5-7.5z" stroke="#888" stroke-width="1.3" stroke-linejoin="round"/></svg>TOOLS <span class="nch" id="ch-tools">›</span></div>
+        <div class="td-l2" id="sub-tools">
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">Achievement Awards</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">ACTIV</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">Calendar</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">Courses</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">E-Learning</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-exit');">Exit Interviews</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">Events</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">Notices</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">Performance Monitor</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">Performance Reviews</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">Scenario Comprehension</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">Sign Offs</div>
+        </div>
+        <div class="ni" onclick="togSub('tset')"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.5" stroke="#888" stroke-width="1.3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2" stroke="#888" stroke-width="1.3" stroke-linecap="round"/></svg>SETTINGS <span class="nch" id="ch-tset">›</span></div>
+        <div class="td-l2" id="sub-tset">
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">Account Groups</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">Accounts</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">Languages</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">Locations</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">Performance Gauges</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">Stats &amp; Reports</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">System Configuration</div>
+          <div class="td-sub" onclick="closeDrawer('td');nav('v-wm');">Training Templates</div>
+        </div>
+        <div style="height:20px;flex-shrink:0;"></div>
+      </div>
+      <div class="scrim" onclick="closeDrawer('td')"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var current='v-login';
+document.addEventListener('DOMContentLoaded',function(){
+  var el=document.getElementById('v-login');
+  if(el){el.classList.add('active');}
+});
+function nav(id){
+  var p=document.getElementById(current),n=document.getElementById(id);
+  if(!p||!n)return;
+  p.classList.remove('active');p.classList.add('past');
+  var prev=current;
+  setTimeout(function(){var x=document.getElementById(prev);if(x)x.classList.remove('past');},350);
+  current=id;n.classList.remove('past');n.classList.add('active');
+}
+function openDrawer(name){var d=document.getElementById('drawer-'+name);if(d)d.classList.add('open');}
+function closeDrawer(name){var d=document.getElementById('drawer-'+name);if(d)d.classList.remove('open');}
+function togSub(id){
+  var sub=document.getElementById('sub-'+id),ch=document.getElementById('ch-'+id);
+  if(!sub)return;
+  var open=sub.classList.contains('open');
+  document.querySelectorAll('.td-l2').forEach(function(s){s.classList.remove('open');});
+  document.querySelectorAll('[id^="ch-"]').forEach(function(c){c.textContent='›';});
+  if(!open){sub.classList.add('open');if(ch)ch.textContent='∨';}
+}
+</script>
+</body>
+</html>
