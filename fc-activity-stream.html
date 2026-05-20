@@ -5,50 +5,176 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FC Sky — Activity Stream</title>
 <style>
-  body { margin: 0; background: #f0f0f0; display: flex; justify-content: center; align-items: flex-start; padding: 40px 0 60px; font-family: -apple-system, 'Helvetica Neue', sans-serif; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+body{margin:0;background:#e8e8ed;display:flex;justify-content:center;padding:40px 0 60px;font-family:-apple-system,'Helvetica Neue',sans-serif;}
+*{box-sizing:border-box;margin:0;padding:0;}
+.iphone{width:393px;background:#1C1C1E;border-radius:54px;box-shadow:0 0 0 1.5px #3a3a3c,0 0 0 3px #1c1c1e,0 0 0 4px #48484a,0 50px 120px rgba(0,0,0,0.5),inset 0 0 0 1px rgba(255,255,255,0.08);position:relative;overflow:hidden;}
+.iphone::before{content:'';position:absolute;left:-5px;top:130px;width:4px;height:38px;background:#3a3a3c;border-radius:2px 0 0 2px;box-shadow:0 52px 0 #3a3a3c,0 100px 0 #3a3a3c;}
+.iphone::after{content:'';position:absolute;right:-5px;top:180px;width:4px;height:74px;background:#3a3a3c;border-radius:0 2px 2px 0;}
+.screen{margin:14px;border-radius:42px;overflow:hidden;background:#F2F2F7;position:relative;}
+.dynamic-island{position:absolute;top:14px;left:50%;transform:translateX(-50%);width:120px;height:36px;background:#1C1C1E;border-radius:20px;z-index:200;pointer-events:none;}
+.status-bar{height:59px;background:#F2F2F7;display:flex;align-items:flex-end;padding:0 28px 10px;justify-content:space-between;position:relative;z-index:10;}
+.status-time{font-size:15px;font-weight:600;color:#000;letter-spacing:-0.3px;}
+.status-icons{display:flex;align-items:center;gap:6px;}
+.nav-bar{background:#F2F2F7;padding:4px 20px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid rgba(60,60,67,0.18);}
+.nav-title{font-size:17px;font-weight:600;color:#000;letter-spacing:-0.4px;}
+.nav-action{font-size:13px;color:#2AABBC;font-weight:400;cursor:pointer;}
+.hamburger-btn{width:32px;height:32px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;cursor:pointer;}
+.hamburger-btn span{display:block;width:20px;height:2px;background:#2AABBC;border-radius:1px;}
+.scroll-area{height:700px;overflow-y:auto;background:#F2F2F7;}
+.scroll-area::-webkit-scrollbar{display:none;}
+.drawer-overlay{position:absolute;inset:0;background:rgba(0,0,0,0);z-index:150;pointer-events:none;transition:background 0.3s ease;border-radius:42px;}
+.drawer-overlay.open{background:rgba(0,0,0,0.45);pointer-events:all;}
+.drawer{position:absolute;top:0;left:0;bottom:0;width:310px;background:#fff;z-index:160;border-radius:42px 0 0 42px;transform:translateX(-100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;overflow:hidden;}
+.drawer-overlay.open .drawer{transform:translateX(0);}
+.drawer-header{background:#fff;padding:48px 20px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0;border-bottom:0.5px solid rgba(60,60,67,0.12);}
+.drawer-avatar{width:44px;height:44px;border-radius:50%;background:#E0F7F8;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#2AABBC;}
+.drawer-user{flex:1;}
+.drawer-name{font-size:15px;font-weight:600;color:#1C1C1E;}
+.drawer-role{font-size:12px;color:#8E8E93;margin-top:2px;}
+.drawer-close{width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#8E8E93;font-size:20px;line-height:1;}
+.drawer-scroll{flex:1;overflow-y:auto;}
+.drawer-scroll::-webkit-scrollbar{display:none;}
+.drawer-footer{padding:16px 20px 28px;border-top:0.5px solid rgba(60,60,67,0.1);flex-shrink:0;}
+.drawer-logout{font-size:13px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#FF3B30;cursor:pointer;}
+.menu-item{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:0.5px solid rgba(60,60,67,0.12);cursor:pointer;user-select:none;}
+.menu-item-label{font-size:13px;font-weight:700;color:#1C1C1E;letter-spacing:0.5px;text-transform:uppercase;}
+.menu-item-label.active{color:#2AABBC;}
+.menu-chevron{font-size:16px;color:#C7C7CC;transition:transform 0.22s ease;line-height:1;width:16px;text-align:center;flex-shrink:0;}
+.menu-item.expanded .menu-chevron{transform:rotate(90deg);}
+.submenu{display:none;background:#F7F7F7;}
+.menu-item.expanded + .submenu{display:block;}
+.submenu-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 12px 32px;border-bottom:0.5px solid rgba(60,60,67,0.06);cursor:pointer;user-select:none;}
+.submenu-label{font-size:12px;font-weight:700;color:#3C3C43;letter-spacing:0.4px;text-transform:uppercase;}
+.submenu-chevron{font-size:13px;color:#C7C7CC;transition:transform 0.22s ease;line-height:1;width:14px;text-align:center;flex-shrink:0;}
+.submenu-item.expanded .submenu-chevron{transform:rotate(90deg);}
+.sub-submenu{display:none;background:#ECECEC;}
+.submenu-item.expanded + .sub-submenu{display:block;}
+.sub-item{padding:10px 16px 10px 48px;border-bottom:0.5px solid rgba(60,60,67,0.05);font-size:11px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;color:#636366;cursor:pointer;}
+.sub-item:last-child{border-bottom:none;}
+.sub-item-icon{display:flex;align-items:center;gap:12px;padding:10px 16px 10px 32px;border-bottom:0.5px solid rgba(60,60,67,0.05);cursor:pointer;}
+.sub-item-icon:last-child{border-bottom:none;}
+.sub-icon{width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sub-icon svg{width:28px;height:28px;}
+.sub-item-label{font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#636366;}
+.section-row{background:#fff;border-bottom:0.5px solid rgba(60,60,67,0.12);cursor:pointer;user-select:none;}
+.section-row:first-child{border-top:0.5px solid rgba(60,60,67,0.12);margin-top:12px;}
+.section-trigger{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;}
+.section-name{font-size:13px;font-weight:700;color:#1C1C1E;letter-spacing:0.5px;text-transform:uppercase;}
+.section-right{display:flex;align-items:center;gap:10px;}
+.section-badge{background:#FF3B30;color:#fff;font-size:11px;font-weight:700;min-width:22px;height:22px;border-radius:11px;display:flex;align-items:center;justify-content:center;padding:0 6px;}
+.section-chevron{font-size:16px;color:#C7C7CC;transition:transform 0.25s ease;line-height:1;width:16px;text-align:center;}
+.section-row.open .section-chevron{transform:rotate(90deg);}
+.section-items{display:none;background:#F2F2F7;}
+.section-row.open .section-items{display:block;}
+.activity-group{background:#fff;border-radius:12px;margin:8px 16px;overflow:hidden;}
+.activity-item{display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-bottom:0.5px solid rgba(60,60,67,0.12);}
+.activity-item:last-child{border-bottom:none;}
+.avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#fff;flex-shrink:0;}
+.av-teal{background:#2AABBC;}.av-green{background:#34C759;}.av-orange{background:#FF9500;}
+.icon-avatar{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#E0F7F8;}
+.icon-avatar svg{width:20px;height:20px;}
+.activity-body{flex:1;min-width:0;}
+.activity-header{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:2px;}
+.activity-name{font-size:14px;font-weight:600;color:#000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.activity-time{font-size:12px;color:#8E8E93;white-space:nowrap;flex-shrink:0;}
+.activity-action{font-size:12px;color:#8E8E93;margin-bottom:3px;}
+.activity-detail{font-size:13px;color:#3C3C43;line-height:1.4;}
+.activity-detail a{color:#2AABBC;text-decoration:none;}
+.status-pill{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600;margin-top:4px;background:#E5E5EA;color:#636366;}
+.unread-dot{width:8px;height:8px;border-radius:50%;background:#2AABBC;flex-shrink:0;margin-top:6px;}
+.section-spacer{height:8px;}
+.tab-bar-min{background:rgba(242,242,247,0.94);border-top:0.5px solid rgba(60,60,67,0.18);padding:10px 0 20px;display:flex;justify-content:center;}
+.home-indicator{width:134px;height:5px;background:#1C1C1E;border-radius:3px;opacity:0.18;}
+</style>
+</head>
+<body>
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="ico-trophy" viewBox="0 0 24 24" fill="none" stroke="#2AABBC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4H4a1 1 0 00-1 1v2a4 4 0 004 4h1"/><path d="M17 4h3a1 1 0 011 1v2a4 4 0 01-4 4h-1"/><path d="M7 4h10v7a5 5 0 01-10 0V4z"/></symbol>
+  <symbol id="ico-doc" viewBox="0 0 24 24" fill="none" stroke="#2AABBC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></symbol>
+  <symbol id="ico-forum" viewBox="0 0 24 24" fill="none" stroke="#2AABBC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></symbol>
+  <symbol id="ico-goal" viewBox="0 0 24 24" fill="none" stroke="#2AABBC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+  <symbol id="ico-notice" viewBox="0 0 24 24" fill="none" stroke="#2AABBC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></symbol>
+  <symbol id="ico-recruit" viewBox="0 0 24 24" fill="none" stroke="#2AABBC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></symbol>
+  <symbol id="ico-signoff" viewBox="0 0 24 24" fill="none" stroke="#2AABBC" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></symbol>
+</svg>
 
-  .iphone {
-    width: 393px; background: #1C1C1E; border-radius: 54px;
-    box-shadow: 0 0 0 1.5px #3a3a3c, 0 0 0 3px #1c1c1e, 0 0 0 4px #48484a, 0 50px 120px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.08);
-    position: relative; overflow: hidden;
-  }
-  .iphone::before { content:''; position:absolute; left:-5px; top:130px; width:4px; height:38px; background:#3a3a3c; border-radius:2px 0 0 2px; box-shadow:0 52px 0 #3a3a3c,0 100px 0 #3a3a3c; }
-  .iphone::after  { content:''; position:absolute; right:-5px; top:180px; width:4px; height:74px; background:#3a3a3c; border-radius:0 2px 2px 0; }
+<div class="iphone"><div class="screen">
+<div class="dynamic-island"></div>
+<div class="status-bar">
+  <span class="status-time">9:41</span>
+  <div class="status-icons">
+    <svg width="17" height="12" viewBox="0 0 17 12"><rect x="0" y="3" width="3" height="9" rx="1" fill="#000" opacity="0.4"/><rect x="4.5" y="2" width="3" height="10" rx="1" fill="#000" opacity="0.6"/><rect x="9" y="0" width="3" height="12" rx="1" fill="#000"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="#000"/></svg>
+    <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 2.4C10.4 2.4 12.5 3.4 14 5L15.5 3.4C13.6 1.3 11 0 8 0C5 0 2.4 1.3 0.5 3.4L2 5C3.5 3.4 5.6 2.4 8 2.4Z" fill="#000"/><path d="M8 5.4C9.7 5.4 11.2 6.1 12.3 7.2L13.8 5.6C12.3 4.1 10.3 3.2 8 3.2C5.7 3.2 3.7 4.1 2.2 5.6L3.7 7.2C4.8 6.1 6.3 5.4 8 5.4Z" fill="#000"/><circle cx="8" cy="10" r="2" fill="#000"/></svg>
+    <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="1" width="21" height="10" rx="3" stroke="#000" stroke-width="1" fill="none" opacity="0.4"/><rect x="22" y="4" width="2" height="4" rx="1" fill="#000" opacity="0.4"/><rect x="1.5" y="2.5" width="16" height="7" rx="2" fill="#000"/></svg>
+  </div>
+</div>
+<div class="nav-bar">
+  <div class="hamburger-btn" id="hamburgerBtn"><span></span><span></span><span></span></div>
+  <span class="nav-title">Activity Stream</span>
+  <span class="nav-action">Mark all</span>
+</div>
+<div class="scroll-area">
+  <div class="section-row" onclick="toggleSection(this)"><div class="section-trigger"><span class="section-name">Sales</span><div class="section-right"><span class="section-badge">2</span><span class="section-chevron">&#x203A;</span></div></div><div class="section-items"><div class="activity-group"><div class="activity-item"><div class="avatar av-teal">FA</div><div class="activity-body"><div class="activity-header"><span class="activity-name">FranConnect Admin</span><span class="activity-time">06:28 AM</span></div><div class="activity-action">Assigned a Task</div><div class="activity-detail"><a href="#">Mithas12</a> &mdash; Start: 04/06/2026 06:30 AM &middot; Timeless</div></div><div class="unread-dot"></div></div><div class="activity-item"><div class="avatar av-green">KP</div><div class="activity-body"><div class="activity-header"><span class="activity-name">Komal Parsing</span><span class="activity-time">06:28 AM</span></div><div class="activity-action">New Lead Added</div><div class="activity-detail"><a href="#">Advertisement &mdash; komalchoudhary5478@gmail.com</a></div></div></div></div><div class="section-spacer"></div></div></div>
+  <div class="section-row" onclick="toggleSection(this)"><div class="section-trigger"><span class="section-name">Support</span><div class="section-right"><span class="section-badge">2</span><span class="section-chevron">&#x203A;</span></div></div><div class="section-items"><div class="activity-group"><div class="activity-item"><div class="avatar av-orange">MI</div><div class="activity-body"><div class="activity-header"><span class="activity-name">Marry Igor</span><span class="activity-time">Apr 15</span></div><div class="activity-action">Ticket Status Change</div><div class="activity-detail">#DC20260306065209<div><span class="status-pill">Closed</span></div></div></div></div><div class="activity-item"><div class="avatar av-orange">MI</div><div class="activity-body"><div class="activity-header"><span class="activity-name">Marry Igor</span><span class="activity-time">Apr 15</span></div><div class="activity-action">Ticket Status Change</div><div class="activity-detail">#DC20260306065209<div><span class="status-pill">Closed</span></div></div></div></div></div><div class="section-spacer"></div></div></div>
+  <div class="section-row" onclick="toggleSection(this)"><div class="section-trigger"><span class="section-name">Achievement Awards</span><div class="section-right"><span class="section-badge">1</span><span class="section-chevron">&#x203A;</span></div></div><div class="section-items"><div class="activity-group"><div class="activity-item"><div class="icon-avatar"><svg><use href="#ico-trophy"/></svg></div><div class="activity-body"><div class="activity-header"><span class="activity-name">Certification Achieved</span><span class="activity-time">06:28 AM</span></div><div class="activity-detail" style="margin-top:2px">A new certification has been awarded</div></div><div class="unread-dot"></div></div></div><div class="section-spacer"></div></div></div>
+  <div class="section-row" onclick="toggleSection(this)"><div class="section-trigger"><span class="section-name">Contract Generation</span><div class="section-right"><span class="section-badge">1</span><span class="section-chevron">&#x203A;</span></div></div><div class="section-items"><div class="activity-group"><div class="activity-item"><div class="icon-avatar"><svg><use href="#ico-doc"/></svg></div><div class="activity-body"><div class="activity-header"><span class="activity-name">Contract Signed</span><span class="activity-time">06:28 AM</span></div><div class="activity-detail" style="margin-top:2px">Contract for <a href="#">EMP-04 S02 AU</a> has been signed</div></div></div></div><div class="section-spacer"></div></div></div>
+  <div class="section-row" onclick="toggleSection(this)"><div class="section-trigger"><span class="section-name">Forum</span><div class="section-right"><span class="section-badge">1</span><span class="section-chevron">&#x203A;</span></div></div><div class="section-items"><div class="activity-group"><div class="activity-item"><div class="icon-avatar"><svg><use href="#ico-forum"/></svg></div><div class="activity-body"><div class="activity-header"><span class="activity-name">New Post</span><span class="activity-time">06:28 AM</span></div><div class="activity-detail" style="margin-top:2px">WM-01 World posted to your profile page</div></div></div></div><div class="section-spacer"></div></div></div>
+  <div class="section-row" onclick="toggleSection(this)"><div class="section-trigger"><span class="section-name">Goals</span><div class="section-right"><span class="section-badge">1</span><span class="section-chevron">&#x203A;</span></div></div><div class="section-items"><div class="activity-group"><div class="activity-item"><div class="icon-avatar"><svg><use href="#ico-goal"/></svg></div><div class="activity-body"><div class="activity-header"><span class="activity-name">Goal Created</span><span class="activity-time">06:28 AM</span></div><div class="activity-detail" style="margin-top:2px">'Providing health benefits or support to staff' assigned to you</div></div></div></div><div class="section-spacer"></div></div></div>
+  <div class="section-row" onclick="toggleSection(this)"><div class="section-trigger"><span class="section-name">Notices</span><div class="section-right"><span class="section-badge">1</span><span class="section-chevron">&#x203A;</span></div></div><div class="section-items"><div class="activity-group"><div class="activity-item"><div class="icon-avatar"><svg><use href="#ico-notice"/></svg></div><div class="activity-body"><div class="activity-header"><span class="activity-name">Notice Reply</span><span class="activity-time">06:28 AM</span></div><div class="activity-detail" style="margin-top:2px">Jhon replied to <a href="#">EMP-04 S02 AU</a></div></div></div></div><div class="section-spacer"></div></div></div>
+  <div class="section-row" onclick="toggleSection(this)"><div class="section-trigger"><span class="section-name">Recruitment</span><div class="section-right"><span class="section-badge">2</span><span class="section-chevron">&#x203A;</span></div></div><div class="section-items"><div class="activity-group"><div class="activity-item"><div class="icon-avatar"><svg><use href="#ico-recruit"/></svg></div><div class="activity-body"><div class="activity-header"><span class="activity-name">New Applicant</span><span class="activity-time">06:28 AM</span></div><div class="activity-detail" style="margin-top:2px">New application received for <a href="#">pos1</a></div></div><div class="unread-dot"></div></div><div class="activity-item"><div class="icon-avatar"><svg><use href="#ico-recruit"/></svg></div><div class="activity-body"><div class="activity-header"><span class="activity-name">Interview Scheduled</span><span class="activity-time">06:28 AM</span></div><div class="activity-detail" style="margin-top:2px">An interview has been scheduled</div></div></div></div><div class="section-spacer"></div></div></div>
+  <div class="section-row" onclick="toggleSection(this)" style="border-bottom:none"><div class="section-trigger"><span class="section-name">Sign Offs</span><div class="section-right"><span class="section-badge">1</span><span class="section-chevron">&#x203A;</span></div></div><div class="section-items"><div class="activity-group" style="margin-bottom:12px"><div class="activity-item"><div class="icon-avatar"><svg><use href="#ico-signoff"/></svg></div><div class="activity-body"><div class="activity-header"><span class="activity-name">Signoff Complete</span><span class="activity-time">06:28 AM</span></div><div class="activity-detail" style="margin-top:2px">Manager signed off on <a href="#">Emergency Exits</a></div></div></div></div></div></div>
+  <div style="height:16px"></div>
+</div>
+<div class="tab-bar-min"><div class="home-indicator"></div></div>
 
-  .screen { margin:14px; border-radius:42px; overflow:hidden; background:#F2F2F7; position:relative; }
-  .dynamic-island { position:absolute; top:14px; left:50%; transform:translateX(-50%); width:120px; height:36px; background:#1C1C1E; border-radius:20px; z-index:200; }
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer(event)">
+<div class="drawer">
+  <div class="drawer-header"><div class="drawer-avatar">BM</div><div class="drawer-user"><div class="drawer-name">Brad Murray</div><div class="drawer-role">AU &ndash; Franchise Owner</div></div><div class="drawer-close" onclick="closeDrawerDirect()">&#x2715;</div></div>
+  <div class="drawer-scroll">
+    <div class="menu-item"><span class="menu-item-label active">Activity</span></div>
+    <div class="menu-item"><span class="menu-item-label">Hub</span></div>
+    <div class="menu-item"><span class="menu-item-label">Command Center</span></div>
+    <div class="menu-item" onclick="toggleMenu(this)"><span class="menu-item-label">Sales</span><span class="menu-chevron">&#x203A;</span></div>
+    <div class="submenu"><div class="submenu-item"><span class="submenu-label">Dashboard</span></div><div class="submenu-item"><span class="submenu-label">Lead Management</span></div><div class="submenu-item"><span class="submenu-label">FDD</span></div><div class="submenu-item"><span class="submenu-label">Tasks</span></div><div class="submenu-item"><span class="submenu-label">Search</span></div></div>
+    <div class="menu-item" onclick="toggleMenu(this)"><span class="menu-item-label">Opener</span><span class="menu-chevron">&#x203A;</span></div>
+    <div class="submenu"><div class="submenu-item"><span class="submenu-label">Unit Summary</span></div><div class="submenu-item"><span class="submenu-label">Tasks</span></div><div class="submenu-item"><span class="submenu-label">Search</span></div></div>
+    <div class="menu-item" onclick="toggleMenu(this)"><span class="menu-item-label">Information Manager</span><span class="menu-chevron">&#x203A;</span></div>
+    <div class="submenu"><div class="submenu-item"><span class="submenu-label">Dashboard</span></div><div class="submenu-item"><span class="submenu-label">In Development</span></div><div class="submenu-item"><span class="submenu-label">Franchisees</span></div><div class="submenu-item"><span class="submenu-label">Terminated</span></div><div class="submenu-item"><span class="submenu-label">Corporate Locations</span></div><div class="submenu-item"><span class="submenu-label">Multi-Unit / Entity</span></div><div class="submenu-item"><span class="submenu-label">Tasks</span></div><div class="submenu-item"><span class="submenu-label">Search</span></div></div>
+    <div class="menu-item" onclick="toggleMenu(this)"><span class="menu-item-label">Training &amp; Development</span><span class="menu-chevron">&#x203A;</span></div>
+    <div class="submenu">
+      <div class="submenu-item" onclick="toggleSubmenu(this)"><span class="submenu-label">Divisions</span><span class="submenu-chevron">&#x203A;</span></div>
+      <div class="sub-submenu"><div class="sub-item">Aero Mart FC</div><div class="sub-item">Beta Mart FC</div><div class="sub-item">Brand: AFC</div><div class="sub-item">Brand: Pest Control</div><div class="sub-item">Brand: Pie Story</div><div class="sub-item">Brand: Wally Wasp</div><div class="sub-item">Brand: Wild Blue</div><div class="sub-item">Country: Australia</div><div class="sub-item">Country: Canada</div><div class="sub-item">Country: Colombia</div><div class="sub-item">Country: UK</div><div class="sub-item">Country: United States</div><div class="sub-item">Org: Head Office</div><div class="sub-item">Org: Operator</div><div class="sub-item">Org: Stark</div><div class="sub-item">Org: Warehouse</div></div>
+      <div class="submenu-item" onclick="toggleSubmenu(this)"><span class="submenu-label">Tools</span><span class="submenu-chevron">&#x203A;</span></div>
+      <div class="sub-submenu">
+        <div class="sub-item-icon"><div class="sub-icon"><svg viewBox="0 0 32 32" fill="none" stroke="#9B9B9B" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="12" r="6"/><path d="M11.5 17.5l-2 8.5 6.5-2.5 6.5 2.5-2-8.5"/><circle cx="16" cy="12" r="3"/></svg></div><span class="sub-item-label">Achievement Awards</span></div>
+        <div class="sub-item-icon"><div class="sub-icon"><svg viewBox="0 0 32 32" fill="none" stroke="#9B9B9B" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="21" cy="7" r="2.5"/><path d="M18 12.5l-5 3.5-3 5.5h3.5l2-4 3 2.5v6h3v-7.5l-3-2.5 1-4.5"/><path d="M13 16l-3.5 1.5"/></svg></div><span class="sub-item-label">ACTIV</span></div>
+        <div class="sub-item-icon"><div class="sub-icon"><svg viewBox="0 0 32 32" fill="none" stroke="#9B9B9B" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="24" height="22" rx="2"/><line x1="4" y1="13" x2="28" y2="13"/><line x1="11" y1="4" x2="11" y2="9"/><line x1="21" y1="4" x2="21" y2="9"/><rect x="8" y="17" width="4" height="4" rx="0.5"/><rect x="14" y="17" width="4" height="4" rx="0.5"/><rect x="20" y="17" width="4" height="4" rx="0.5"/></svg></div><span class="sub-item-label">Calendar</span></div>
+        <div class="sub-item-icon"><div class="sub-icon"><svg viewBox="0 0 32 32" fill="none" stroke="#9B9B9B" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 4H8a2 2 0 00-2 2v20a2 2 0 002 2h16a2 2 0 002-2V12z"/><polyline points="18 4 18 12 26 12"/><line x1="10" y1="17" x2="22" y2="17"/><line x1="10" y1="21" x2="17" y2="21"/></svg></div><span class="sub-item-label">Courses</span></div>
+        <div class="sub-item-icon"><div class="sub-icon"><svg viewBox="0 0 32 32" fill="none" stroke="#9B9B9B" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="26" height="18" rx="2"/><line x1="3" y1="19" x2="29" y2="19"/><line x1="11" y1="27" x2="21" y2="27"/><line x1="16" y1="23" x2="16" y2="27"/><polygon points="13,10 13,18 21,14" fill="#9B9B9B" stroke="none"/></svg></div><span class="sub-item-label">E-Learning</span></div>
+        <div class="sub-item-icon"><div class="sub-icon"><svg viewBox="0 0 32 32" fill="none" stroke="#9B9B9B" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="14" height="22" rx="1.5"/><line x1="9" y1="9" x2="17" y2="9"/><line x1="9" y1="13" x2="17" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/><path d="M23 12h5M25.5 9.5l2.5 2.5-2.5 2.5"/></svg></div><span class="sub-item-label">Exit Interviews</span></div>
+      </div>
+      <div class="submenu-item" onclick="toggleSubmenu(this)"><span class="submenu-label">Settings</span><span class="submenu-chevron">&#x203A;</span></div>
+      <div class="sub-submenu"><div class="sub-item">Account Groups</div><div class="sub-item">Accounts</div><div class="sub-item">Languages</div><div class="sub-item">Locations</div><div class="sub-item">Stats &amp; Reports</div><div class="sub-item">System Configuration</div><div class="sub-item">Training Templates</div></div>
+    </div>
+    <div class="menu-item" onclick="toggleMenu(this)"><span class="menu-item-label">Support</span><span class="menu-chevron">&#x203A;</span></div>
+    <div class="submenu"><div class="submenu-item"><span class="submenu-label">Dashboard</span></div><div class="submenu-item"><span class="submenu-label">Tickets</span></div><div class="submenu-item"><span class="submenu-label">FAQs</span></div><div class="submenu-item"><span class="submenu-label">Contact Info</span></div><div class="submenu-item"><span class="submenu-label">Search</span></div></div>
+    <div class="menu-item" onclick="toggleMenu(this)"><span class="menu-item-label">Financials</span><span class="menu-chevron">&#x203A;</span></div>
+    <div class="submenu"><div class="submenu-item"><span class="submenu-label">Dashboard</span></div><div class="submenu-item"><span class="submenu-label">Reports</span></div></div>
+    <div class="menu-item"><span class="menu-item-label">Marketing</span></div>
+    <div class="menu-item" style="border-bottom:none"><span class="menu-item-label">Calendar</span></div>
+  </div>
+  <div class="drawer-footer"><span class="drawer-logout">Logout</span></div>
+</div>
+</div>
 
-  .status-bar { height:59px; background:#F2F2F7; display:flex; align-items:flex-end; padding:0 28px 10px; justify-content:space-between; position:relative; z-index:10; }
-  .status-time { font-size:15px; font-weight:600; color:#000; letter-spacing:-0.3px; }
-  .status-icons { display:flex; align-items:center; gap:6px; }
-
-  .nav-bar { background:#F2F2F7; padding:4px 20px 12px; display:flex; align-items:center; justify-content:space-between; border-bottom:0.5px solid rgba(60,60,67,0.18); }
-  .nav-title { font-size:17px; font-weight:600; color:#000; letter-spacing:-0.4px; }
-  .nav-action { font-size:13px; color:#2AABBC; font-weight:400; cursor:pointer; }
-  .hamburger-btn { width:32px; height:32px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:4px; cursor:pointer; }
-  .hamburger-btn span { display:block; width:20px; height:2px; background:#2AABBC; border-radius:1px; }
-
-  .scroll-area { height:700px; overflow-y:auto; background:#F2F2F7; }
-  .scroll-area::-webkit-scrollbar { display:none; }
-
-  /* ── DRAWER ── */
-  .drawer-overlay { position:absolute; inset:0; background:rgba(0,0,0,0); z-index:150; pointer-events:none; transition:background 0.3s ease; border-radius:42px; }
-  .drawer-overlay.open { background:rgba(0,0,0,0.45); pointer-events:all; }
-  .drawer { position:absolute; top:0; left:0; bottom:0; width:310px; background:#fff; z-index:160; border-radius:42px 0 0 42px; transform:translateX(-100%); transition:transform 0.3s cubic-bezier(0.4,0,0.2,1); display:flex; flex-direction:column; overflow:hidden; }
-  .drawer-overlay.open .drawer { transform:translateX(0); }
-
-  .drawer-header { background:#fff; padding:48px 20px 16px; display:flex; align-items:center; gap:12px; flex-shrink:0; border-bottom:0.5px solid rgba(60,60,67,0.12); }
-  .drawer-avatar { width:44px; height:44px; border-radius:50%; background:#E0F7F8; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; color:#2AABBC; }
-  .drawer-user { flex:1; }
-  .drawer-name { font-size:15px; font-weight:600; color:#1C1C1E; }
-  .drawer-role { font-size:12px; color:#8E8E93; margin-top:2px; }
-  .drawer-close { width:28px; height:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#8E8E93; font-size:20px; line-height:1; }
-
-  .drawer-scroll { flex:1; overflow-y:auto; }
-  .drawer-scroll::-webkit-scrollbar { display:none; }
-
-  .menu-item { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:0.5px solid rgba(60,60,67,0.12); cursor:pointer; user-select:none; }
-  .menu-item-label { font-size:13px; font-weight:700; color:#1C1C1E; letter-spacing:0.5px; text-transform:uppercase; }
-  .menu-item-label.active { color:#2AABBC; }
-  .menu-chevron { font-size:16px; color:#C7C7CC; transition:transform 0.22s ease; line
+</div></div>
+<script>
+document.getElementById('hamburgerBtn').addEventListener('click',function(e){e.stopPropagation();document.getElementById('drawerOverlay').classList.add('open');});
+function closeDrawer(e){if(e.target===document.getElementById('drawerOverlay'))document.getElementById('drawerOverlay').classList.remove('open');}
+function closeDrawerDirect(){document.getElementById('drawerOverlay').classList.remove('open');}
+function toggleSection(row){row.classList.toggle('open');}
+function toggleMenu(item){event.stopPropagation();item.classList.toggle('expanded');}
+function toggleSubmenu(item){event.stopPropagation();item.classList.toggle('expanded');}
+</script>
+</body>
+</html>
