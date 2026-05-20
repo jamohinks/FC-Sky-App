@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FC Sky — Activity Stream</title>
+<style>
+  body { margin: 0; background: #f0f0f0; display: flex; justify-content: center; align-items: flex-start; padding: 40px 0 60px; font-family: -apple-system, 'Helvetica Neue', sans-serif; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  .iphone {
+    width: 393px; background: #1C1C1E; border-radius: 54px;
+    box-shadow: 0 0 0 1.5px #3a3a3c, 0 0 0 3px #1c1c1e, 0 0 0 4px #48484a, 0 50px 120px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.08);
+    position: relative; overflow: hidden;
+  }
+  .iphone::before { content:''; position:absolute; left:-5px; top:130px; width:4px; height:38px; background:#3a3a3c; border-radius:2px 0 0 2px; box-shadow:0 52px 0 #3a3a3c,0 100px 0 #3a3a3c; }
+  .iphone::after  { content:''; position:absolute; right:-5px; top:180px; width:4px; height:74px; background:#3a3a3c; border-radius:0 2px 2px 0; }
+
+  .screen { margin:14px; border-radius:42px; overflow:hidden; background:#F2F2F7; position:relative; }
+  .dynamic-island { position:absolute; top:14px; left:50%; transform:translateX(-50%); width:120px; height:36px; background:#1C1C1E; border-radius:20px; z-index:200; }
+
+  .status-bar { height:59px; background:#F2F2F7; display:flex; align-items:flex-end; padding:0 28px 10px; justify-content:space-between; position:relative; z-index:10; }
+  .status-time { font-size:15px; font-weight:600; color:#000; letter-spacing:-0.3px; }
+  .status-icons { display:flex; align-items:center; gap:6px; }
+
+  .nav-bar { background:#F2F2F7; padding:4px 20px 12px; display:flex; align-items:center; justify-content:space-between; border-bottom:0.5px solid rgba(60,60,67,0.18); }
+  .nav-title { font-size:17px; font-weight:600; color:#000; letter-spacing:-0.4px; }
+  .nav-action { font-size:13px; color:#2AABBC; font-weight:400; cursor:pointer; }
+  .hamburger-btn { width:32px; height:32px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:4px; cursor:pointer; }
+  .hamburger-btn span { display:block; width:20px; height:2px; background:#2AABBC; border-radius:1px; }
+
+  .scroll-area { height:700px; overflow-y:auto; background:#F2F2F7; }
+  .scroll-area::-webkit-scrollbar { display:none; }
+
+  /* ── DRAWER ── */
+  .drawer-overlay { position:absolute; inset:0; background:rgba(0,0,0,0); z-index:150; pointer-events:none; transition:background 0.3s ease; border-radius:42px; }
+  .drawer-overlay.open { background:rgba(0,0,0,0.45); pointer-events:all; }
+  .drawer { position:absolute; top:0; left:0; bottom:0; width:310px; background:#fff; z-index:160; border-radius:42px 0 0 42px; transform:translateX(-100%); transition:transform 0.3s cubic-bezier(0.4,0,0.2,1); display:flex; flex-direction:column; overflow:hidden; }
+  .drawer-overlay.open .drawer { transform:translateX(0); }
+
+  .drawer-header { background:#fff; padding:48px 20px 16px; display:flex; align-items:center; gap:12px; flex-shrink:0; border-bottom:0.5px solid rgba(60,60,67,0.12); }
+  .drawer-avatar { width:44px; height:44px; border-radius:50%; background:#E0F7F8; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; color:#2AABBC; }
+  .drawer-user { flex:1; }
+  .drawer-name { font-size:15px; font-weight:600; color:#1C1C1E; }
+  .drawer-role { font-size:12px; color:#8E8E93; margin-top:2px; }
+  .drawer-close { width:28px; height:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:#8E8E93; font-size:20px; line-height:1; }
+
+  .drawer-scroll { flex:1; overflow-y:auto; }
+  .drawer-scroll::-webkit-scrollbar { display:none; }
+
+  .menu-item { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:0.5px solid rgba(60,60,67,0.12); cursor:pointer; user-select:none; }
+  .menu-item-label { font-size:13px; font-weight:700; color:#1C1C1E; letter-spacing:0.5px; text-transform:uppercase; }
+  .menu-item-label.active { color:#2AABBC; }
+  .menu-chevron { font-size:16px; color:#C7C7CC; transition:transform 0.22s ease; line
